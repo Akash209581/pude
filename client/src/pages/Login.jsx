@@ -33,9 +33,7 @@ function Login() {
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-100">CSE Department</p>
               <h1 className="mt-6 max-w-md text-4xl font-bold leading-tight">Publication analytics, events, and student research records.</h1>
             </div>
-            <div className="rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur">
-              <p className="text-sm text-blue-50">Admin-only portal protected by JWT authentication and PostgreSQL-backed records.</p>
-            </div>
+
           </div>
         </div>
         <form onSubmit={handleSubmit} className="p-6 sm:p-10">
