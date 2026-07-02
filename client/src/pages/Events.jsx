@@ -682,7 +682,13 @@ function DocumentInput({ label, file, onChange }) {
         className="hidden"
         type="file"
         accept=".jpg,.jpeg,.png,.pdf"
-        onChange={(event) => onChange(event.target.files?.[0] || null)}
+        onChange={(event) => {
+          const selectedFile = event.target.files?.[0] || null;
+          if (selectedFile) {
+            toast.success('File uploaded');
+          }
+          onChange(selectedFile);
+        }}
       />
     </label>
   )

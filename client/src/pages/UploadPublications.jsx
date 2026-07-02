@@ -39,7 +39,18 @@ function UploadPublications() {
           <FileSpreadsheet className="mb-3 text-blue-700 dark:text-blue-300" size={42} />
           <span className="font-semibold">{file ? file.name : 'Choose Excel file'}</span>
           <span className="mt-1 text-sm text-slate-500">xlsx, xls, or csv up to 8 MB</span>
-          <input className="hidden" type="file" accept=".xlsx,.xls,.csv" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+          <input
+            className="hidden"
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={(event) => {
+              const selectedFile = event.target.files?.[0] || null;
+              if (selectedFile) {
+                toast.success('File uploaded');
+              }
+              setFile(selectedFile);
+            }}
+          />
         </label>
         <button className="btn-primary mt-5" disabled={loading}><Upload size={16} /> {loading ? 'Uploading...' : 'Upload and Import'}</button>
       </form>
