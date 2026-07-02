@@ -1,0 +1,43 @@
+const path = require('path');
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
+require('dotenv').config();
+
+const { authenticate, requireAdmin } = require('../middleware/auth');
+const { notFound, errorHandler } = require('../middleware/errorHandler');
+const authRoutes = require('../routes/authRoutes');
+const dashboardRoutes = require('../routes/dashboardRoutes');
+const publicationRoutes = require('../routes/publicationRoutes');
+const eventRoutes = require('../routes/eventRoutes');
+
+const app = express();
+const port = process.env.PORT || 5000;
+
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', credentials: true }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 250 }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+app.get('/health', (req, res) => res.json({ ok: true }));
+
+const prefix = process.env.PATH_PREFIX || '';
+const apiRouter = express.Router();
+
+apiRouter.use('/api', authRoutes);
+apiRouter.use('/api', authenticate, requireAdmin, dashboardRoutes);
+apiRouter.use('/api', authenticate, requireAdmin, publicationRoutes);
+apiRouter.use('/api', authenticate, requireAdmin, eventRoutes);
+
+app.use(prefix, apiRouter);
+app.use(notFound);
+app.use(errorHandler);
+
+app.listen(port, () => {
+  console.log(`CSE Department Portal API running on port ${port}`);
+});
