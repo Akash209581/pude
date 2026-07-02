@@ -49,7 +49,7 @@ function eventFileFilter(req, file, cb) {
 const eventUpload = multer({
   storage,
   fileFilter: eventFileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit per file
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit per file
 }).fields([
   { name: 'poster', maxCount: 1 },
   { name: 'one_page_report', maxCount: 1 },

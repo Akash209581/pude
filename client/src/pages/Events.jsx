@@ -471,7 +471,7 @@ function Events() {
             {/* Supporting Documents */}
             <div>
               <h4 className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider text-xs border-b border-emerald-100 dark:border-emerald-950 pb-1 mb-3">
-                Supporting Documents <span className="text-slate-400 font-normal lowercase">(Max 2MB each - JPG, PNG, PDF)</span>
+                Supporting Documents <span className="text-slate-400 font-normal lowercase">(Max 10MB each - JPG, PNG, PDF)</span>
               </h4>
               <div className="grid gap-4 md:grid-cols-2">
                 <DocumentInput
