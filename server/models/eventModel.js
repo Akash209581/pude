@@ -88,4 +88,19 @@ async function recent() {
   return rows;
 }
 
-module.exports = { list, create, update, remove, recent };
+async function analytics() {
+  const [totalRes, typeRes, yearRes] = await Promise.all([
+    db.query('SELECT COUNT(*) AS count, COALESCE(SUM(budget), 0) AS budget FROM events'),
+    db.query('SELECT COALESCE(event_type, \'Other\') AS name, COUNT(*) AS value FROM events GROUP BY event_type'),
+    db.query('SELECT academic_year AS year, COUNT(*) AS count, COALESCE(SUM(budget), 0) AS budget FROM events GROUP BY academic_year ORDER BY academic_year ASC')
+  ]);
+
+  return {
+    totalEvents: parseInt(totalRes.rows[0].count, 10),
+    totalBudget: parseFloat(totalRes.rows[0].budget),
+    eventsByType: typeRes.rows.map(r => ({ name: r.name, value: parseInt(r.value, 10) })),
+    eventsByYear: yearRes.rows.map(r => ({ year: r.year, count: parseInt(r.count, 10), budget: parseFloat(r.budget) }))
+  };
+}
+
+module.exports = { list, create, update, remove, recent, analytics };

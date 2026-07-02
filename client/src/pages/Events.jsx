@@ -23,17 +23,16 @@ const emptyForm = {
   budget_report: null,
 }
 
-const eventTypes = [
+const defaultEventTypes = [
   'Workshop',
   'Seminar',
   'Conference',
   'Hackathon',
   'Guest Lecture',
   'Webinar',
-  'Other',
 ]
 
-const academicYears = [
+const defaultAcademicYears = [
   '2023-2024',
   '2024-2025',
   '2025-2026',
@@ -49,6 +48,166 @@ function Events() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
+  const [types, setTypes] = useState(defaultEventTypes)
+  const [years, setYears] = useState(defaultAcademicYears)
+  const [selectedEvents, setSelectedEvents] = useState([])
+
+  useEffect(() => {
+    const initOptions = async () => {
+      try {
+        const { data } = await api.get('/events')
+        const existingTypes = data.map(e => e.event_type).filter(Boolean)
+        setTypes(Array.from(new Set([...defaultEventTypes, ...existingTypes])))
+
+        const existingYears = data.map(e => e.academic_year).filter(Boolean)
+        setYears(Array.from(new Set([...defaultAcademicYears, ...existingYears])).sort((a, b) => b.localeCompare(a)))
+      } catch (error) {
+        console.error('Failed to initialize type/year lists:', error)
+      }
+    }
+    initOptions()
+  }, [])
+
+  const toggleSelect = (id) => {
+    setSelectedEvents(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedEvents.length === events.length) {
+      setSelectedEvents([])
+    } else {
+      setSelectedEvents(events.map(e => e.id))
+    }
+  }
+
+  const exportCSV = () => {
+    const listToExport = events.filter(e => selectedEvents.includes(e.id))
+    const finalEventsList = listToExport.length > 0 ? listToExport : events
+
+    let csvContent = '\uFEFF' // UTF-8 BOM
+    csvContent += [
+      'S.No',
+      'Employee ID',
+      'Coordinator Name',
+      'Event Name',
+      'Event Type',
+      'Academic Year',
+      'From Date',
+      'To Date',
+      'Venue',
+      'Budget',
+      'Description',
+      'Outcome',
+      'One Page Report'
+    ].join(',') + '\n'
+
+    finalEventsList.forEach((e, idx) => {
+      const row = [
+        idx + 1,
+        `"${(e.employee_id || '').replace(/"/g, '""')}"`,
+        `"${(e.coordinator_name || '').replace(/"/g, '""')}"`,
+        `"${(e.event_name || '').replace(/"/g, '""')}"`,
+        `"${(e.event_type || '').replace(/"/g, '""')}"`,
+        `"${(e.academic_year || '').replace(/"/g, '""')}"`,
+        e.from_date ? e.from_date.slice(0, 10) : '',
+        e.to_date ? e.to_date.slice(0, 10) : '',
+        `"${(e.venue || '').replace(/"/g, '""')}"`,
+        e.budget || 0,
+        `"${(e.description || '').replace(/"/g, '""')}"`,
+        `"${(e.outcome || '').replace(/"/g, '""')}"`,
+        e.one_page_report ? `"${apiOrigin}${e.one_page_report}"` : ''
+      ]
+      csvContent += row.join(',') + '\n'
+    })
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `events_report_${new Date().getFullYear()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const downloadReports = () => {
+    const listToDownload = events.filter(e => selectedEvents.includes(e.id))
+    const finalEventsList = listToDownload.length > 0 ? listToDownload : events
+
+    let foundReport = false
+    finalEventsList.forEach((e, index) => {
+      if (e.one_page_report) {
+        foundReport = true
+        setTimeout(() => {
+          const link = document.createElement('a')
+          link.href = `${apiOrigin}${e.one_page_report}`
+          link.setAttribute('download', '')
+          link.setAttribute('target', '_blank')
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }, index * 250)
+      }
+    })
+
+    if (!foundReport) {
+      toast.error('No One Page Reports available to download for selected events.')
+    }
+  }
+
+  useEffect(() => {
+    const initOptions = async () => {
+      try {
+        const { data } = await api.get('/events')
+        const existingTypes = data.map(e => e.event_type).filter(Boolean)
+        setTypes(Array.from(new Set([...defaultEventTypes, ...existingTypes])))
+
+        const existingYears = data.map(e => e.academic_year).filter(Boolean)
+        setYears(Array.from(new Set([...defaultAcademicYears, ...existingYears])).sort((a, b) => b.localeCompare(a)))
+      } catch (error) {
+        console.error('Failed to initialize type/year lists:', error)
+      }
+    }
+    initOptions()
+  }, [])
+
+  const handleTypeChange = (e) => {
+    const value = e.target.value
+    if (value === 'Other') {
+      const customType = prompt('Enter custom event type:')
+      if (customType && customType.trim()) {
+        const trimmed = customType.trim()
+        if (!types.includes(trimmed)) {
+          setTypes(prev => [...prev, trimmed])
+        }
+        setForm(prev => ({ ...prev, event_type: trimmed }))
+      } else {
+        setForm(prev => ({ ...prev, event_type: '' }))
+      }
+    } else {
+      setForm(prev => ({ ...prev, event_type: value }))
+    }
+  }
+
+  const handleYearChange = (e) => {
+    const value = e.target.value
+    if (value === 'Other') {
+      const customYear = prompt('Enter custom academic year (e.g. 2027-2028):')
+      if (customYear && customYear.trim()) {
+        const trimmed = customYear.trim()
+        if (!years.includes(trimmed)) {
+          setYears(prev => [...prev, trimmed].sort((a, b) => b.localeCompare(a)))
+        }
+        setForm(prev => ({ ...prev, academic_year: trimmed }))
+      } else {
+        setForm(prev => ({ ...prev, academic_year: '' }))
+      }
+    } else {
+      setForm(prev => ({ ...prev, academic_year: value }))
+    }
+  }
 
   const loadEvents = useCallback(async () => {
     setLoading(true)
@@ -139,16 +298,39 @@ function Events() {
         </button>
       </div>
 
-      <div className="glass-panel flex flex-wrap gap-2 p-3">
-        {[['', 'All Events'], ['upcoming', 'Upcoming'], ['past', 'Past']].map(([value, label]) => (
+      <div className="glass-panel flex flex-wrap items-center justify-between gap-3 p-3">
+        <div className="flex gap-2">
+          {[['', 'All Events'], ['upcoming', 'Upcoming'], ['past', 'Past']].map(([value, label]) => (
+            <button
+              key={value}
+              className={`cursor-pointer ${filter === value ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setFilter(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2 items-center">
           <button
-            key={value}
-            className={`cursor-pointer ${filter === value ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setFilter(value)}
+            className="btn-secondary text-xs cursor-pointer"
+            onClick={toggleSelectAll}
           >
-            {label}
+            {selectedEvents.length === events.length && events.length > 0 ? 'Deselect All' : 'Select All'}
           </button>
-        ))}
+          <button
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white transition cursor-pointer shadow-md shadow-emerald-600/10"
+            onClick={downloadReports}
+          >
+            <FileText size={13} /> Download Reports {selectedEvents.length > 0 ? `(${selectedEvents.filter(id => events.find(e => e.id === id)?.one_page_report).length})` : ''}
+          </button>
+          <button
+            className="btn-secondary text-xs cursor-pointer flex items-center gap-1"
+            onClick={exportCSV}
+          >
+            Export CSV {selectedEvents.length > 0 ? `(${selectedEvents.length})` : ''}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -206,12 +388,13 @@ function Events() {
                   <select
                     className="input"
                     value={form.event_type}
-                    onChange={(event) => setForm({ ...form, event_type: event.target.value })}
+                    onChange={handleTypeChange}
                   >
                     <option value="">Select type...</option>
-                    {eventTypes.map((type) => (
+                    {types.map((type) => (
                       <option key={type} value={type}>{type}</option>
                     ))}
+                    <option value="Other">Other...</option>
                   </select>
                 </label>
 
@@ -220,13 +403,14 @@ function Events() {
                   <select
                     className="input"
                     value={form.academic_year}
-                    onChange={(event) => setForm({ ...form, academic_year: event.target.value })}
+                    onChange={handleYearChange}
                     required
                   >
                     <option value="">Select year...</option>
-                    {academicYears.map((year) => (
+                    {years.map((year) => (
                       <option key={year} value={year}>{year}</option>
                     ))}
+                    <option value="Other">Other...</option>
                   </select>
                 </label>
 
@@ -345,6 +529,16 @@ function Events() {
               <article className="glass-panel flex flex-col overflow-hidden transition hover:-translate-y-1" key={event.id}>
                 {/* Poster Display */}
                 <div className="aspect-[16/9] w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-850 dark:to-slate-900 flex items-center justify-center relative overflow-hidden">
+                  {/* Checkbox Selector */}
+                  <div className="absolute top-3 left-3 z-10 bg-white/90 dark:bg-slate-900/90 rounded p-1 shadow-sm backdrop-blur-xs flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedEvents.includes(event.id)}
+                      onChange={() => toggleSelect(event.id)}
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                    />
+                  </div>
+
                   {event.poster ? (
                     isImagePoster ? (
                       <img src={`${apiOrigin}${event.poster}`} alt={event.event_name} className="h-full w-full object-cover" />
@@ -361,7 +555,7 @@ function Events() {
                     </div>
                   )}
                   {/* Badges */}
-                  <div className="absolute top-3 left-3 flex flex-wrap gap-1">
+                  <div className="absolute top-3 left-12 flex flex-wrap gap-1">
                     {event.academic_year && (
                       <span className="bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-xs">
                         {event.academic_year}
