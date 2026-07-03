@@ -471,7 +471,7 @@ function Events() {
             {/* Supporting Documents */}
             <div>
               <h4 className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider text-xs border-b border-emerald-100 dark:border-emerald-950 pb-1 mb-3">
-                Supporting Documents <span className="text-slate-400 font-normal lowercase">(Max 10MB each - JPG, PNG, PDF)</span>
+                Supporting Documents <span className="text-slate-400 font-normal lowercase">(Max 10MB each)</span>
               </h4>
               <div className="grid gap-4 md:grid-cols-2">
                 <DocumentInput
@@ -516,7 +516,16 @@ function Events() {
       {loading ? <Spinner /> : (
         <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {events.map((event) => {
-            const isImagePoster = event.poster && !event.poster.toLowerCase().endsWith('.pdf');
+            const posterExt = event.poster ? event.poster.toLowerCase() : '';
+            const isImagePoster = event.poster && (
+              posterExt.endsWith('.jpg') ||
+              posterExt.endsWith('.jpeg') ||
+              posterExt.endsWith('.png') ||
+              posterExt.endsWith('.gif') ||
+              posterExt.endsWith('.webp') ||
+              posterExt.endsWith('.bmp') ||
+              posterExt.endsWith('.svg')
+            );
             const supportingDocs = [
               { label: 'Poster', path: event.poster },
               { label: 'One Page Report', path: event.one_page_report },
@@ -545,7 +554,7 @@ function Events() {
                     ) : (
                       <a href={`${apiOrigin}${event.poster}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center text-slate-500 hover:text-blue-600 transition">
                         <FileText size={48} className="text-red-500" />
-                        <span className="text-xs mt-1 font-semibold">View Poster PDF</span>
+                        <span className="text-xs mt-1 font-semibold">View Poster File</span>
                       </a>
                     )
                   ) : (
@@ -681,7 +690,6 @@ function DocumentInput({ label, file, onChange }) {
       <input
         className="hidden"
         type="file"
-        accept=".jpg,.jpeg,.png,.pdf"
         onChange={(event) => {
           const selectedFile = event.target.files?.[0] || null;
           if (selectedFile) {

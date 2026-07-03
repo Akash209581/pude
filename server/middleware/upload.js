@@ -38,11 +38,6 @@ const imageUpload = multer({
 });
 
 function eventFileFilter(req, file, cb) {
-  const allowed = ['.jpg', '.jpeg', '.png', '.pdf'];
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (!allowed.includes(ext)) {
-    return cb(new Error('Only JPG, PNG, and PDF files are allowed.'));
-  }
   cb(null, true);
 }
 
