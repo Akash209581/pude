@@ -1,8 +1,22 @@
 const db = require('../config/db');
 
-async function list(type) {
-  const where = type === 'upcoming' ? 'WHERE from_date >= CURRENT_DATE' : type === 'past' ? 'WHERE from_date < CURRENT_DATE' : '';
-  const { rows } = await db.query(`SELECT * FROM events ${where} ORDER BY from_date ASC, created_at DESC`);
+async function list(type, academicYear) {
+  const conditions = [];
+  const values = [];
+  
+  if (type === 'upcoming') {
+    conditions.push('from_date >= CURRENT_DATE');
+  } else if (type === 'past') {
+    conditions.push('from_date < CURRENT_DATE');
+  }
+  
+  if (academicYear) {
+    values.push(academicYear);
+    conditions.push(`academic_year = $${values.length}`);
+  }
+  
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const { rows } = await db.query(`SELECT * FROM events ${where} ORDER BY from_date ASC, created_at DESC`, values);
   return rows;
 }
 

@@ -41,6 +41,17 @@ const defaultAcademicYears = [
 
 const apiOrigin = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:5000';
 
+const formatDocPath = (path) => {
+  if (!path) return '';
+  if (path.startsWith('/publications/uploads/')) {
+    return path.replace('/publications/uploads/', '/events/uploads/');
+  }
+  if (path.startsWith('/uploads/') && (import.meta.env.VITE_API_ORIGIN === '' || import.meta.env.VITE_API_ORIGIN === undefined)) {
+    return path.replace('/uploads/', '/events/uploads/');
+  }
+  return path;
+};
+
 function Events() {
   const [events, setEvents] = useState([])
   const [filter, setFilter] = useState('')
@@ -50,6 +61,7 @@ function Events() {
   const [form, setForm] = useState(emptyForm)
   const [types, setTypes] = useState(defaultEventTypes)
   const [years, setYears] = useState(defaultAcademicYears)
+  const [selectedYear, setSelectedYear] = useState('')
   const [selectedEvents, setSelectedEvents] = useState([])
 
   useEffect(() => {
@@ -211,10 +223,13 @@ function Events() {
 
   const loadEvents = useCallback(async () => {
     setLoading(true)
-    const { data } = await api.get('/events', { params: filter ? { type: filter } : {} })
+    const params = {}
+    if (filter) params.type = filter
+    if (selectedYear) params.academic_year = selectedYear
+    const { data } = await api.get('/events', { params })
     setEvents(data)
     setLoading(false)
-  }, [filter])
+  }, [filter, selectedYear])
 
   useEffect(() => {
     loadEvents().catch(() => {
@@ -299,16 +314,28 @@ function Events() {
       </div>
 
       <div className="glass-panel flex flex-wrap items-center justify-between gap-3 p-3">
-        <div className="flex gap-2">
-          {[['', 'All Events'], ['upcoming', 'Upcoming'], ['past', 'Past']].map(([value, label]) => (
-            <button
-              key={value}
-              className={`cursor-pointer ${filter === value ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setFilter(value)}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex gap-2">
+            {[['', 'All Events'], ['upcoming', 'Upcoming'], ['past', 'Past']].map(([value, label]) => (
+              <button
+                key={value}
+                className={`cursor-pointer ${filter === value ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setFilter(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <select
+            className="input py-1.5 px-3 text-xs w-44 cursor-pointer"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            <option value="">All Academic Years</option>
+            {years.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
         </div>
 
         <div className="flex flex-wrap gap-2 items-center">
@@ -516,8 +543,9 @@ function Events() {
       {loading ? <Spinner /> : (
         <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {events.map((event) => {
-            const posterExt = event.poster ? event.poster.toLowerCase() : '';
-            const isImagePoster = event.poster && (
+            const formattedPoster = formatDocPath(event.poster);
+            const posterExt = formattedPoster.toLowerCase();
+            const isImagePoster = formattedPoster && (
               posterExt.endsWith('.jpg') ||
               posterExt.endsWith('.jpeg') ||
               posterExt.endsWith('.png') ||
@@ -527,11 +555,11 @@ function Events() {
               posterExt.endsWith('.svg')
             );
             const supportingDocs = [
-              { label: 'Poster', path: event.poster },
-              { label: 'One Page Report', path: event.one_page_report },
-              { label: 'Winners List', path: event.winners_list },
-              { label: 'Sample Certificate', path: event.sample_certificate },
-              { label: 'Budget Report', path: event.budget_report },
+              { label: 'Poster', path: formattedPoster },
+              { label: 'One Page Report', path: formatDocPath(event.one_page_report) },
+              { label: 'Winners List', path: formatDocPath(event.winners_list) },
+              { label: 'Sample Certificate', path: formatDocPath(event.sample_certificate) },
+              { label: 'Budget Report', path: formatDocPath(event.budget_report) },
             ].filter(doc => doc.path);
 
             return (
@@ -548,11 +576,11 @@ function Events() {
                     />
                   </div>
 
-                  {event.poster ? (
+                  {formattedPoster ? (
                     isImagePoster ? (
-                      <img src={`${apiOrigin}${event.poster}`} alt={event.event_name} className="h-full w-full object-cover" />
+                      <img src={`${apiOrigin}${formattedPoster}`} alt={event.event_name} className="h-full w-full object-cover" />
                     ) : (
-                      <a href={`${apiOrigin}${event.poster}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center text-slate-500 hover:text-blue-600 transition">
+                      <a href={`${apiOrigin}${formattedPoster}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center text-slate-500 hover:text-blue-600 transition">
                         <FileText size={48} className="text-red-500" />
                         <span className="text-xs mt-1 font-semibold">View Poster File</span>
                       </a>
