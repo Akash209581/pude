@@ -68,4 +68,13 @@ async function uploadExcel(req, res, next) {
   }
 }
 
-module.exports = { list, create, update, remove, uploadExcel };
+async function listStudents(req, res, next) {
+  try {
+    const rows = await publications.listStudents();
+    return res.json(rows);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { list, create, update, remove, uploadExcel, listStudents };

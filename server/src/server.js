@@ -12,6 +12,8 @@ const authRoutes = require('../routes/authRoutes');
 const dashboardRoutes = require('../routes/dashboardRoutes');
 const publicationRoutes = require('../routes/publicationRoutes');
 const eventRoutes = require('../routes/eventRoutes');
+const publicationController = require('../controllers/publicationController');
+const eventController = require('../controllers/eventController');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -32,6 +34,13 @@ const prefix = process.env.PATH_PREFIX || '';
 const apiRouter = express.Router();
 
 apiRouter.use('/api', authRoutes);
+
+// Public dashboard and analytics endpoints
+apiRouter.use('/api/public', dashboardRoutes);
+apiRouter.get('/api/public/publications', publicationController.list);
+apiRouter.get('/api/public/events', eventController.list);
+apiRouter.get('/api/public/students', publicationController.listStudents);
+
 apiRouter.use('/api', authenticate, requireAdmin, dashboardRoutes);
 apiRouter.use('/api', authenticate, requireAdmin, publicationRoutes);
 apiRouter.use('/api', authenticate, requireAdmin, eventRoutes);

@@ -470,4 +470,14 @@ async function insertMany(items) {
   return { inserted, duplicates, failed };
 }
 
-module.exports = { list, create, update, remove, analytics, insertMany };
+async function listStudents() {
+  const { rows } = await db.query(`
+    SELECT pa.student_name, pa.registration_number, COUNT(DISTINCT pa.publication_id)::INT publications
+    FROM publication_authors pa
+    GROUP BY pa.student_name, pa.registration_number
+    ORDER BY publications DESC, pa.student_name
+  `);
+  return rows;
+}
+
+module.exports = { list, create, update, remove, analytics, insertMany, listStudents };

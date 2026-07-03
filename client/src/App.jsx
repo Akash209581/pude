@@ -19,6 +19,7 @@ function App() {
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/events_dashboard" element={<Dashboard isPublic={true} />} />
         <Route
           path="/"
           element={

@@ -18,7 +18,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('cse_portal_token')
       localStorage.removeItem('cse_portal_user')
-      if (!window.location.pathname.endsWith('/login')) {
+      if (!window.location.pathname.endsWith('/login') && !window.location.pathname.endsWith('/events_dashboard')) {
         window.location.href = '/login'
       }
     }

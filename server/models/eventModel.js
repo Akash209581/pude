@@ -103,17 +103,19 @@ async function recent() {
 }
 
 async function analytics() {
-  const [totalRes, typeRes, yearRes] = await Promise.all([
+  const [totalRes, typeRes, yearRes, monthRes] = await Promise.all([
     db.query('SELECT COUNT(*) AS count, COALESCE(SUM(budget), 0) AS budget FROM events'),
     db.query('SELECT COALESCE(event_type, \'Other\') AS name, COUNT(*) AS value FROM events GROUP BY event_type'),
-    db.query('SELECT academic_year AS year, COUNT(*) AS count, COALESCE(SUM(budget), 0) AS budget FROM events GROUP BY academic_year ORDER BY academic_year ASC')
+    db.query('SELECT academic_year AS year, COUNT(*) AS count, COALESCE(SUM(budget), 0) AS budget FROM events GROUP BY academic_year ORDER BY academic_year ASC'),
+    db.query(`SELECT TO_CHAR(from_date, 'Mon YYYY') AS month, DATE_TRUNC('month', from_date) AS month_date, COUNT(*)::INT count FROM events GROUP BY DATE_TRUNC('month', from_date), TO_CHAR(from_date, 'Mon YYYY') ORDER BY month_date`)
   ]);
 
   return {
     totalEvents: parseInt(totalRes.rows[0].count, 10),
     totalBudget: parseFloat(totalRes.rows[0].budget),
     eventsByType: typeRes.rows.map(r => ({ name: r.name, value: parseInt(r.value, 10) })),
-    eventsByYear: yearRes.rows.map(r => ({ year: r.year, count: parseInt(r.count, 10), budget: parseFloat(r.budget) }))
+    eventsByYear: yearRes.rows.map(r => ({ year: r.year, count: parseInt(r.count, 10), budget: parseFloat(r.budget) })),
+    eventsByMonth: monthRes.rows.map(r => ({ month: r.month, count: parseInt(r.count, 10) }))
   };
 }
 
