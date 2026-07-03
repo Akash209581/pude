@@ -93,6 +93,19 @@ async function migrate() {
       await client.query('ALTER TABLE events ADD COLUMN budget_report TEXT');
     }
 
+    // Re-index publications serial_no to be fully sequential starting from 1
+    console.log('Re-indexing existing publications serial numbers sequentially...');
+    await client.query(`
+      WITH numbered_pubs AS (
+        SELECT id, ROW_NUMBER() OVER (ORDER BY created_at ASC, id ASC) as rn
+        FROM publications
+      )
+      UPDATE publications p
+      SET serial_no = np.rn
+      FROM numbered_pubs np
+      WHERE p.id = np.id
+    `);
+
     await client.query('COMMIT');
     console.log('Migration completed successfully!');
   } catch (error) {

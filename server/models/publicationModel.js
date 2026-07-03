@@ -186,13 +186,17 @@ async function create(data) {
   try {
     await client.query('BEGIN');
     await ensureUniquePublication(client, data);
+
+    const maxRes = await client.query('SELECT COALESCE(MAX(serial_no), 0) AS max FROM publications');
+    const newSerial = parseInt(maxRes.rows[0].max, 10) + 1;
+
     const { rows } = await client.query(
       `INSERT INTO publications
        (serial_no, paper_title, conference_or_journal, paper_name, paper_type, year, faculty_guide)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
        RETURNING id`,
       [
-        data.serial_no || null,
+        newSerial,
         data.paper_title,
         data.conference_or_journal,
         data.paper_name,
@@ -350,6 +354,9 @@ async function insertMany(items) {
     try {
       await client.query('BEGIN');
 
+      const maxRes = await client.query('SELECT COALESCE(MAX(serial_no), 0) AS max FROM publications');
+      let currentMax = parseInt(maxRes.rows[0].max, 10);
+
       // 2. Identify duplicates in this chunk
       const checkParams = [];
       const checkPlaceholders = [];
@@ -395,8 +402,9 @@ async function insertMany(items) {
         const pubParams = [];
         const pubPlaceholders = [];
         toInsert.forEach((item, index) => {
+          currentMax++;
           pubParams.push(
-            item.serial_no || null,
+            currentMax,
             item.paper_title,
             item.conference_or_journal === 'Journal' || String(item.conference_or_journal).toLowerCase().includes('journal') ? 'Journal' : 'Conference',
             item.paper_name,
