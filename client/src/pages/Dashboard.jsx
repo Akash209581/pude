@@ -142,12 +142,12 @@ function DetailModal({ isOpen, onClose, statType, isPublic }) {
           ) : (
             <div className="overflow-x-auto">
               {statType === 'total_students' && (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                      <th className="pb-3">Student Name</th>
-                      <th className="pb-3">Registration Number</th>
-                      <th className="pb-3 text-right">Publications Count</th>
+                      <th className="pb-3 w-[45%]">Student Name</th>
+                      <th className="pb-3 w-[35%]">Registration Number</th>
+                      <th className="pb-3 w-[20%] text-right">Publications Count</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-850 text-sm">
@@ -163,11 +163,11 @@ function DetailModal({ isOpen, onClose, statType, isPublic }) {
               )}
 
               {statType === 'total_faculty_publications' && (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[500px]">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                      <th className="pb-3">Faculty Name</th>
-                      <th className="pb-3 text-right">Publications Count</th>
+                      <th className="pb-3 w-[75%]">Faculty Name</th>
+                      <th className="pb-3 w-[25%] text-right">Publications Count</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-850 text-sm">
@@ -182,14 +182,14 @@ function DetailModal({ isOpen, onClose, statType, isPublic }) {
               )}
 
               {statType === 'total_events' && (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[850px]">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                      <th className="pb-3">Event Name</th>
-                      <th className="pb-3">Coordinator</th>
-                      <th className="pb-3">Date</th>
-                      <th className="pb-3">Venue</th>
-                      <th className="pb-3 text-right">Budget</th>
+                      <th className="pb-3 w-[35%]">Event Name</th>
+                      <th className="pb-3 w-[20%]">Coordinator</th>
+                      <th className="pb-3 w-[20%]">Date</th>
+                      <th className="pb-3 w-[15%]">Venue</th>
+                      <th className="pb-3 w-[10%] text-right">Budget</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-850 text-sm">
@@ -212,27 +212,27 @@ function DetailModal({ isOpen, onClose, statType, isPublic }) {
               )}
 
               {['total_publications', 'total_conference_papers', 'total_journal_papers'].includes(statType) && (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[1100px]">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                      <th className="pb-3">Serial No</th>
-                      <th className="pb-3">Title</th>
-                      <th className="pb-3">Venue / Journal</th>
-                      <th className="pb-3">Type</th>
-                      <th className="pb-3">Authors</th>
-                      <th className="pb-3">Faculty Guide</th>
-                      <th className="pb-3 text-right">Year</th>
+                      <th className="pb-3 w-[6%] pr-2">S.No</th>
+                      <th className="pb-3 w-[30%] pr-4">Title</th>
+                      <th className="pb-3 w-[25%] pr-4">Venue / Journal</th>
+                      <th className="pb-3 w-[10%] pr-2">Type</th>
+                      <th className="pb-3 w-[18%] pr-4">Authors</th>
+                      <th className="pb-3 w-[14%] pr-2">Faculty Guide</th>
+                      <th className="pb-3 w-[7%] text-right">Year</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-850 text-sm">
                     {filteredData.map((item, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-850/30">
-                        <td className="py-3 text-slate-500 dark:text-slate-400">{item.serial_no || '-'}</td>
-                        <td className="py-3 font-semibold text-slate-800 dark:text-slate-200 max-w-xs truncate" title={item.paper_title}>{item.paper_title}</td>
-                        <td className="py-3 text-slate-500 dark:text-slate-400 max-w-xs truncate" title={item.paper_name}>{item.paper_name}</td>
-                        <td className="py-3 text-slate-500 dark:text-slate-400">{item.conference_or_journal}</td>
-                        <td className="py-3 text-slate-500 dark:text-slate-400 max-w-xs truncate" title={item.authors_text}>{item.authors_text}</td>
-                        <td className="py-3 text-slate-500 dark:text-slate-400">{item.faculty_guide || '-'}</td>
+                        <td className="py-3 text-slate-500 dark:text-slate-400 pr-2">{item.serial_no || '-'}</td>
+                        <td className="py-3 font-semibold text-slate-800 dark:text-slate-200 max-w-xs truncate pr-4" title={item.paper_title}>{item.paper_title}</td>
+                        <td className="py-3 text-slate-500 dark:text-slate-400 max-w-xs truncate pr-4" title={item.paper_name}>{item.paper_name}</td>
+                        <td className="py-3 text-slate-500 dark:text-slate-400 pr-2">{item.conference_or_journal}</td>
+                        <td className="py-3 text-slate-500 dark:text-slate-400 max-w-xs truncate pr-4" title={item.authors_text}>{item.authors_text}</td>
+                        <td className="py-3 text-slate-500 dark:text-slate-400 pr-2">{item.faculty_guide || '-'}</td>
                         <td className="py-3 text-right font-semibold text-slate-800 dark:text-slate-200">{item.year}</td>
                       </tr>
                     ))}
