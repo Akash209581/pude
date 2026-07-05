@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { BarChart3, CalendarDays, FileSpreadsheet, LibraryBig, LogOut, Menu, Moon, Sun, X } from 'lucide-react'
-import { useEffect, useState } from 'react'\nimport { useAuth } from '../contexts/useAuth.js'
+import { useEffect, useState } from 'react'
+import { useAuth } from '../contexts/useAuth.js'
 
 const links = [
   { to: '/', label: 'Dashboard', icon: BarChart3 },
