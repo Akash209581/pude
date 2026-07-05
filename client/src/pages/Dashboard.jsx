@@ -450,15 +450,16 @@ function Dashboard({ isPublic = false }) {
   if (isPublic) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors">
-        <header className="sticky top-0 z-20 border-b border-white/70 bg-white/75 px-4 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/75 sm:px-6 h-28 flex items-center">
-          <div className="max-w-7xl mx-auto flex items-center gap-4 w-full">
-            <img src="vignan.png" alt="Vignan Logo" className="h-36 w-auto object-contain flex-shrink-0" />
-            <div className="flex-1 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Computer Science & Engineering</p>
-              <h2 className="text-lg font-bold sm:text-2xl">Department Events & Publications Dashboard</h2>
+        <header className="sticky top-0 z-20 border-b border-white/70 bg-white/75 px-3 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/75 sm:px-6 flex items-center"
+          style={{ minHeight: '4rem' }}>
+          <div className="max-w-7xl mx-auto flex items-center gap-2 sm:gap-4 w-full py-2">
+            <img src="vignan.png" alt="Vignan Logo" className="h-12 w-auto object-contain flex-shrink-0 sm:h-20 md:h-28" />
+            <div className="flex-1 text-center min-w-0">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] text-blue-600 truncate">Computer Science &amp; Engineering</p>
+              <h2 className="text-sm sm:text-lg font-bold md:text-2xl leading-tight">Department Events &amp; Publications Dashboard</h2>
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <img src="cse.png" alt="CSE Logo" className="h-20 w-auto object-contain flex-shrink-0" />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <img src="cse.png" alt="CSE Logo" className="h-10 w-auto object-contain flex-shrink-0 sm:h-14 md:h-20" />
               <button className="icon-button" onClick={() => setDark((value) => !value)} aria-label="Toggle dark mode">
                 {dark ? <Sun size={18} /> : <Moon size={18} />}
               </button>
