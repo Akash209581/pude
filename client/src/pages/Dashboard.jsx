@@ -4,6 +4,9 @@ import { BookOpen, CalendarClock, FileText, GraduationCap, LibraryBig, Users, Se
 import api from '../services/api.js'
 import Spinner from '../components/Spinner.jsx'
 
+
+
+
 const statConfig = [
   ['Total Publications', 'total_publications', LibraryBig],
   ['Total Students', 'total_students', Users],
@@ -104,11 +107,11 @@ function DetailModal({ isOpen, onClose, statType, isPublic }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white">{getTitle()}</h2>
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition"
           >
@@ -287,8 +290,8 @@ function Dashboard({ isPublic = false }) {
     <div className="space-y-6">
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {statConfig.map(([label, key, Icon]) => (
-          <article 
-            className="stat-card cursor-pointer hover:shadow-md hover:border-blue-500/50 dark:hover:border-blue-500/50 transition duration-200" 
+          <article
+            className="stat-card cursor-pointer hover:shadow-md hover:border-blue-500/50 dark:hover:border-blue-500/50 transition duration-200"
             key={key}
             onClick={() => {
               setSelectedStat(key)
@@ -372,7 +375,7 @@ function Dashboard({ isPublic = false }) {
       <div className="border-t border-slate-100 dark:border-slate-850 pt-6">
         <h2 className="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200">Department Events Analytics</h2>
         <section className="grid gap-4 sm:grid-cols-2 mb-6">
-          <article 
+          <article
             className="stat-card cursor-pointer hover:shadow-md hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition duration-200"
             onClick={() => {
               setSelectedStat('total_events')
@@ -435,11 +438,11 @@ function Dashboard({ isPublic = false }) {
         </section>
       </div>
 
-      <DetailModal 
-        isOpen={modalOpen} 
-        onClose={() => setModalOpen(false)} 
-        statType={selectedStat} 
-        isPublic={isPublic} 
+      <DetailModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        statType={selectedStat}
+        isPublic={isPublic}
       />
     </div>
   )
@@ -447,15 +450,19 @@ function Dashboard({ isPublic = false }) {
   if (isPublic) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors">
-        <header className="sticky top-0 z-20 border-b border-white/70 bg-white/75 px-4 py-4 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/75 sm:px-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div>
+        <header className="sticky top-0 z-20 border-b border-white/70 bg-white/75 px-4 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/75 sm:px-6 h-28 flex items-center">
+          <div className="max-w-7xl mx-auto flex items-center gap-4 w-full">
+            <img src="vignan.png" alt="Vignan Logo" className="h-36 w-auto object-contain flex-shrink-0" />
+            <div className="flex-1 text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Computer Science & Engineering</p>
               <h2 className="text-lg font-bold sm:text-2xl">Department Events & Publications Dashboard</h2>
             </div>
-            <button className="icon-button" onClick={() => setDark((value) => !value)} aria-label="Toggle dark mode">
-              {dark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <img src="cse.png" alt="CSE Logo" className="h-20 w-auto object-contain flex-shrink-0" />
+              <button className="icon-button" onClick={() => setDark((value) => !value)} aria-label="Toggle dark mode">
+                {dark ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+            </div>
           </div>
         </header>
         <main className="max-w-7xl mx-auto p-4 sm:p-6">
