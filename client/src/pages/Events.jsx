@@ -155,7 +155,10 @@ function Events() {
         setTimeout(() => {
           const link = document.createElement('a')
           link.href = `${apiOrigin}${e.one_page_report}`
-          link.setAttribute('download', '')
+          const isHtml = e.one_page_report.toLowerCase().endsWith('.html') || e.one_page_report.toLowerCase().endsWith('.htm')
+          if (!isHtml) {
+            link.setAttribute('download', '')
+          }
           link.setAttribute('target', '_blank')
           document.body.appendChild(link)
           link.click()

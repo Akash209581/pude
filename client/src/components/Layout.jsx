@@ -32,7 +32,7 @@ function Layout() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">Admin</p>
             <h1 className="text-xl font-bold">CSE Portal</h1>
           </div>
-          <button className="icon-button md:hidden" onClick={() => setOpen(false)} aria-label="Close menu">
+          <button className="icon-button md:!hidden" onClick={() => setOpen(false)} aria-label="Close menu">
             <X size={18} />
           </button>
         </div>
@@ -62,13 +62,13 @@ function Layout() {
           <div className="flex items-center gap-2 sm:gap-4 w-full py-2">
 
             {/* Hamburger — mobile only */}
-            <button className="icon-button md:hidden flex-shrink-0" onClick={() => setOpen(true)} aria-label="Open menu">
+            <button className="icon-button md:!hidden flex-shrink-0" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu size={20} />
             </button>
 
             {/* Vignan Logo */}
             <img
-              src="vignan.png"
+              src={`${import.meta.env.BASE_URL}vignan.png`}
               alt="Vignan Logo"
               className="h-10 w-auto object-contain flex-shrink-0 sm:h-16 md:h-20 lg:h-24"
             />
@@ -86,7 +86,7 @@ function Layout() {
             {/* CSE Logo + dark toggle */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <img
-                src="cse.png"
+                src={`${import.meta.env.BASE_URL}cse.png`}
                 alt="CSE Logo"
                 className="h-10 w-auto object-contain flex-shrink-0 sm:h-14 md:h-16 lg:h-20"
               />
