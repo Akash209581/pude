@@ -129,7 +129,7 @@ function Events() {
         e.budget || 0,
         `"${(e.description || '').replace(/"/g, '""')}"`,
         `"${(e.outcome || '').replace(/"/g, '""')}"`,
-        e.one_page_report ? `"${apiOrigin}${e.one_page_report}"` : ''
+        e.one_page_report ? `"${apiOrigin}${formatDocPath(e.one_page_report)}"` : ''
       ]
       csvContent += row.join(',') + '\n'
     })
@@ -153,9 +153,10 @@ function Events() {
       if (e.one_page_report) {
         foundReport = true
         setTimeout(() => {
+          const formattedPath = formatDocPath(e.one_page_report)
           const link = document.createElement('a')
-          link.href = `${apiOrigin}${e.one_page_report}`
-          const isHtml = e.one_page_report.toLowerCase().endsWith('.html') || e.one_page_report.toLowerCase().endsWith('.htm')
+          link.href = `${apiOrigin}${formattedPath}`
+          const isHtml = formattedPath.toLowerCase().endsWith('.html') || formattedPath.toLowerCase().endsWith('.htm')
           if (!isHtml) {
             link.setAttribute('download', '')
           }
