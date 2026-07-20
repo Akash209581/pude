@@ -148,7 +148,7 @@ function Publications() {
         const { data } = await api.get('/publications', { params: { ...query, all: true } })
         dataToExport = data.rows
       }
-      
+
       const headers = ['S.No', 'Authors', 'Registration Numbers', 'Title of the Paper', 'Conference/Journal', 'Name of the Paper', 'Type of Paper', 'Year', 'Faculty Guide']
       const body = dataToExport.map((row, index) => [
         index + 1,
@@ -161,10 +161,10 @@ function Publications() {
         row.year,
         row.faculty_guide,
       ])
-      
+
       const bom = '\uFEFF';
       const csvContent = [headers, ...body].map((line) => line.map((cell) => `"${String(cell ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
-      
+
       const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
@@ -194,7 +194,7 @@ function Publications() {
       row.year,
       row.faculty_guide,
     ]]
-    
+
     const bom = '\uFEFF';
     const csvContent = [headers, ...body].map((line) => line.map((cell) => `"${String(cell ?? '').replaceAll('"', '""')}"`).join(',')).join('\n');
 

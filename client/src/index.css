@@ -26,6 +26,41 @@ textarea {
   @apply rounded-xl border border-white/70 bg-white/75 p-5 shadow-xl shadow-blue-950/5 backdrop-blur-xl transition duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-950/10 dark:border-slate-800 dark:bg-slate-900/75 dark:shadow-none dark:hover:shadow-none;
 }
 
+/* Custom chart wrapper classes */
+.recharts-responsive-container {
+  @apply transition-all duration-300;
+}
+
+/* Timeline progress bar line */
+.timeline-track {
+  height: 2px;
+  background: #e2e8f0;
+  position: absolute;
+  top: 28px;
+  left: 50px;
+  right: 50px;
+  z-index: 0;
+}
+.dark .timeline-track {
+  background: #334155;
+}
+
+/* Custom scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
 .btn-primary {
   @apply inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60;
 }

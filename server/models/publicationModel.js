@@ -295,6 +295,9 @@ async function analytics() {
       FROM publications GROUP BY month, month_date ORDER BY month_date`),
     db.query('SELECT paper_name, COUNT(*)::INT count FROM publications WHERE conference_or_journal = $1 GROUP BY paper_name ORDER BY count DESC, paper_name LIMIT 5', ['Conference']),
     db.query(`${publicationSelect()} GROUP BY p.id ORDER BY p.created_at DESC LIMIT 8`),
+    db.query("SELECT year, COUNT(*)::INT count FROM publications WHERE conference_or_journal = 'Conference' GROUP BY year ORDER BY year"),
+    db.query("SELECT year, COUNT(*)::INT count FROM publications WHERE conference_or_journal = 'Journal' GROUP BY year ORDER BY year"),
+    db.query("SELECT p.year, COUNT(DISTINCT pa.registration_number)::INT count FROM publications p JOIN publication_authors pa ON pa.publication_id = p.id GROUP BY p.year ORDER BY p.year"),
   ]);
 
   return {
@@ -305,6 +308,9 @@ async function analytics() {
     monthly: queries[4].rows.map(({ month, count }) => ({ month, count })),
     topConferences: queries[5].rows,
     recentPublications: queries[6].rows,
+    confByYear: queries[7].rows,
+    journalByYear: queries[8].rows,
+    studentsByYear: queries[9].rows,
   };
 }
 
