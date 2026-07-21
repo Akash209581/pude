@@ -33,11 +33,11 @@ const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-slate-900/90 dark:bg-slate-950/90 border border-slate-700/50 backdrop-blur-md rounded-xl p-3 shadow-xl text-white">
-        <p className="text-xs font-semibold text-slate-400 mb-1">{label}</p>
+        {label && <p className="text-xs font-semibold text-slate-400 mb-1">{label}</p>}
         {payload.map((item, idx) => (
           <p key={idx} className="text-sm font-bold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color || item.fill }} />
-            <span className="text-slate-250">{item.name}:</span>
+            <span className="text-slate-250">{item.name || item.payload?.name}:</span>
             <span className="text-white">{item.value}</span>
           </p>
         ))}
@@ -47,7 +47,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-function DetailModal({ isOpen, onClose, statType, isPublic }) {
+function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -97,6 +97,16 @@ function DetailModal({ isOpen, onClose, statType, isPublic }) {
   if (!isOpen) return null
 
   const filteredData = data.filter(item => {
+    // Apply subFilter for event stats if present
+    if (subFilter && statType === 'total_events') {
+      if (subFilter.type === 'event_type' && item.event_type !== subFilter.value) {
+        return false
+      }
+      if (subFilter.type === 'academic_year' && item.academic_year !== subFilter.value) {
+        return false
+      }
+    }
+
     const term = searchTerm.toLowerCase()
     if (statType === 'total_students') {
       return (
@@ -130,7 +140,16 @@ function DetailModal({ isOpen, onClose, statType, isPublic }) {
       case 'total_conference_papers': return 'Conference Papers'
       case 'total_journal_papers': return 'Journal Papers'
       case 'total_faculty_publications': return 'Faculty Members & Publications Count'
-      case 'total_events': return 'All Events'
+      case 'total_events':
+        if (subFilter) {
+          if (subFilter.type === 'event_type') {
+            return `Events - ${subFilter.value}`
+          }
+          if (subFilter.type === 'academic_year') {
+            return `Events - Academic Year ${subFilter.value}`
+          }
+        }
+        return 'All Events'
       default: return 'Details'
     }
   }
@@ -301,6 +320,7 @@ function Dashboard({ isPublic = false }) {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedStat, setSelectedStat] = useState('')
+  const [selectedSubFilter, setSelectedSubFilter] = useState(null)
   const [dark, setDark] = useState(() => localStorage.getItem('cse_theme') === 'dark')
   const [isDarkTheme, setIsDarkTheme] = useState(() => document.documentElement.classList.contains('dark'))
 
@@ -467,6 +487,17 @@ function Dashboard({ isPublic = false }) {
     if (!dateStr) return '---'
     const date = new Date(dateStr)
     return date.toLocaleString('default', { month: 'short', year: 'numeric' })
+  }
+
+  const formatYear = (yearStr) => {
+    if (!yearStr) return ''
+    const parts = yearStr.split('-')
+    if (parts.length === 2) {
+      const y1 = parts[0].slice(-2)
+      const y2 = parts[1].slice(-2)
+      return `${y1}-${y2}`
+    }
+    return yearStr
   }
 
   const timelineStepColors = [
@@ -728,9 +759,19 @@ function Dashboard({ isPublic = false }) {
           
           <div className="flex flex-col gap-4 flex-1 justify-center">
             {/* Events by Type donut and Events by Year bar chart side by side */}
-            <div className="grid grid-cols-2 gap-4 h-48">
+            <div className="grid grid-cols-2 gap-4 h-64">
               <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-3 rounded-xl flex flex-col items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Events by Type</span>
+                <button
+                  onClick={() => {
+                    setSelectedStat('total_events')
+                    setSelectedSubFilter(null)
+                    setModalOpen(true)
+                  }}
+                  className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition flex items-center gap-1 focus:outline-none"
+                >
+                  Events by Type
+                  <ArrowUpRight size={10} className="opacity-60" />
+                </button>
                 <div className="w-full h-32 flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -740,22 +781,92 @@ function Dashboard({ isPublic = false }) {
                         nameKey="name"
                         innerRadius={25}
                         outerRadius={40}
+                        paddingAngle={2}
+                        onClick={(entry) => {
+                          if (entry && entry.name) {
+                            setSelectedStat('total_events')
+                            setSelectedSubFilter({ type: 'event_type', value: entry.name })
+                            setModalOpen(true)
+                          }
+                        }}
+                        className="cursor-pointer"
                       >
                         {(data?.eventAnalytics?.eventsByType || []).map((entry, index) => (
-                          <Cell key={entry.name} fill={eventPieColors[index % eventPieColors.length]} />
+                          <Cell key={entry.name} fill={eventPieColors[index % eventPieColors.length]} className="cursor-pointer" />
                         ))}
                       </Pie>
+                      <Tooltip content={<CustomTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
+                </div>
+                {/* Custom Legend */}
+                <div className="w-full flex flex-wrap justify-center gap-x-2 gap-y-1 mt-2 px-1 max-h-16 overflow-y-auto">
+                  {(data?.eventAnalytics?.eventsByType || []).map((entry, index) => (
+                    <div 
+                      key={entry.name} 
+                      onClick={() => {
+                        setSelectedStat('total_events')
+                        setSelectedSubFilter({ type: 'event_type', value: entry.name })
+                        setModalOpen(true)
+                      }}
+                      className="flex items-center gap-1 text-[9px] font-bold text-slate-650 dark:text-slate-350 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition"
+                    >
+                      <span 
+                        className="w-1.5 h-1.5 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: eventPieColors[index % eventPieColors.length] }} 
+                      />
+                      <span className="truncate max-w-[50px]" title={entry.name}>{entry.name}</span>
+                      <span className="text-slate-400 dark:text-slate-500 font-extrabold">({entry.value})</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-3 rounded-xl flex flex-col items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Events by Year</span>
-                <div className="w-full h-32">
+                <button
+                  onClick={() => {
+                    setSelectedStat('total_events')
+                    setSelectedSubFilter(null)
+                    setModalOpen(true)
+                  }}
+                  className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition flex items-center gap-1 focus:outline-none"
+                >
+                  Events by Year
+                  <ArrowUpRight size={10} className="opacity-60" />
+                </button>
+                <div className="w-full h-44">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data?.eventAnalytics?.eventsByYear || []} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
-                      <Bar dataKey="count" fill="#10b981" radius={[3, 3, 0, 0]} maxBarSize={20} />
+                    <BarChart data={data?.eventAnalytics?.eventsByYear || []} margin={{ top: 10, right: 5, left: -25, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={isDarkTheme ? "#334155" : "#e2e8f0"} opacity={isDarkTheme ? 0.3 : 0.6} />
+                      <XAxis 
+                        dataKey="year" 
+                        tickFormatter={formatYear}
+                        tick={{ fill: isDarkTheme ? '#94a3b8' : '#64748b', fontSize: 8, fontWeight: 700 }} 
+                        tickLine={false} 
+                        axisLine={false} 
+                      />
+                      <YAxis 
+                        allowDecimals={false} 
+                        tick={{ fill: isDarkTheme ? '#94a3b8' : '#64748b', fontSize: 8, fontWeight: 700 }} 
+                        tickLine={false} 
+                        axisLine={false} 
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar 
+                        dataKey="count" 
+                        name="Events Count" 
+                        fill="#10b981" 
+                        radius={[3, 3, 0, 0]} 
+                        maxBarSize={20} 
+                        className="cursor-pointer"
+                        onClick={(entry) => {
+                          if (entry && entry.year) {
+                            setSelectedStat('total_events')
+                            setSelectedSubFilter({ type: 'academic_year', value: entry.year })
+                            setModalOpen(true)
+                          }
+                        }}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -847,9 +958,13 @@ function Dashboard({ isPublic = false }) {
         {modalOpen && (
           <DetailModal
             isOpen={modalOpen}
-            onClose={() => setModalOpen(false)}
+            onClose={() => {
+              setModalOpen(false)
+              setSelectedSubFilter(null)
+            }}
             statType={selectedStat}
             isPublic={isPublic}
+            subFilter={selectedSubFilter}
           />
         )}
       </AnimatePresence>
