@@ -64,6 +64,8 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedYear, setSelectedYear] = useState('')
+  const [availableYears, setAvailableYears] = useState([])
 
   useEffect(() => {
     if (!isOpen) return
@@ -79,33 +81,57 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
 
     api.get(url)
       .then(({ data }) => {
+        let rows = []
         if (statType === 'total_conference_papers') {
-          setData(data.rows.filter(p => p.conference_or_journal === 'Conference'))
+          rows = data.rows.filter(p => p.conference_or_journal === 'Conference')
         } else if (statType === 'total_journal_papers') {
-          setData(data.rows.filter(p => p.conference_or_journal === 'Journal'))
+          rows = data.rows.filter(p => p.conference_or_journal === 'Journal')
         } else if (statType === 'total_faculty_publications') {
           const counts = {}
-          const rows = data.rows || []
-          rows.forEach(p => {
+          const rawRows = data.rows || []
+          rawRows.forEach(p => {
             if (p.faculty_guide && p.faculty_guide.trim() !== '') {
               const name = p.faculty_guide.trim()
               counts[name] = (counts[name] || 0) + 1
             }
           })
-          const list = Object.keys(counts).map(name => ({
+          rows = Object.keys(counts).map(name => ({
             faculty_name: name,
             publications: counts[name]
           })).sort((a, b) => b.publications - a.publications)
-          setData(list)
         } else if (statType === 'total_publications') {
-          setData(data.rows || [])
+          rows = data.rows || []
         } else {
-          setData(data || [])
+          rows = data || []
+        }
+        setData(rows)
+
+        // Extract available academic years / years and set latest year by default
+        if (statType === 'total_events') {
+          const years = Array.from(new Set(rows.map(item => item.academic_year).filter(Boolean)))
+          years.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+          setAvailableYears(years)
+
+          if (subFilter && subFilter.type === 'academic_year') {
+            setSelectedYear(subFilter.value)
+          } else if (years.length > 0) {
+            setSelectedYear(years[0]) // automatically set the latest academic year
+          } else {
+            setSelectedYear('')
+          }
+        } else if (['total_publications', 'total_conference_papers', 'total_journal_papers'].includes(statType)) {
+          const years = Array.from(new Set(rows.map(item => item.year).filter(Boolean)))
+          years.sort((a, b) => Number(b) - Number(a))
+          setAvailableYears(years)
+          setSelectedYear('')
+        } else {
+          setAvailableYears([])
+          setSelectedYear('')
         }
       })
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
-  }, [isOpen, statType, isPublic])
+  }, [isOpen, statType, isPublic, subFilter])
 
   if (!isOpen) return null
 
@@ -120,7 +146,18 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
       }
     }
 
-    const term = searchTerm.toLowerCase()
+    // Apply Academic Year dropdown filter
+    if (selectedYear && selectedYear !== 'all') {
+      if (statType === 'total_events') {
+        if (item.academic_year !== selectedYear) return false
+      } else if (['total_publications', 'total_conference_papers', 'total_journal_papers'].includes(statType)) {
+        if (String(item.year) !== String(selectedYear)) return false
+      }
+    }
+
+    const term = searchTerm.toLowerCase().trim()
+    if (!term) return true
+
     if (statType === 'total_students') {
       return (
         item.student_name?.toLowerCase().includes(term) ||
@@ -198,8 +235,8 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-850 flex items-center gap-3">
+        {/* Search and Academic Year Filter Bar */}
+        <div className="p-4 border-b border-slate-100 dark:border-slate-850 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <input
@@ -207,10 +244,31 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
               placeholder="Search details..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
             />
           </div>
-          <div className="text-xs font-semibold text-slate-500">
+
+          {availableYears.length > 0 && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                {statType === 'total_events' ? 'Academic Year:' : 'Year:'}
+              </span>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition cursor-pointer"
+              >
+                <option value="all">All Academic Years</option>
+                {availableYears.map((yr) => (
+                  <option key={yr} value={yr}>
+                    {yr} {statType === 'total_events' && yr === availableYears[0] ? '(Latest)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="text-xs font-semibold text-slate-500 whitespace-nowrap self-end sm:self-center">
             {filteredData.length} {filteredData.length === 1 ? 'record' : 'records'} found
           </div>
         </div>
@@ -517,13 +575,14 @@ function Dashboard({ isPublic = false }) {
     ]
   }
 
-  const calculateTrend = (yearlyData) => {
+  const calculateTrend = (yearlyData, isAcademicYear = false) => {
+    const label = isAcademicYear ? 'vs last academic year' : 'vs last year'
     if (!yearlyData || !Array.isArray(yearlyData)) {
-      return { trend: '─ 0% vs last year', trendColor: 'text-slate-400' }
+      return { trend: `─ 0% ${label}`, trendColor: 'text-slate-400' }
     }
     const validData = yearlyData.filter(d => d && d.year !== null && d.year !== undefined && d.year !== '')
     if (validData.length < 2) {
-      return { trend: '─ 0% vs last year', trendColor: 'text-slate-400' }
+      return { trend: `─ 0% ${label}`, trendColor: 'text-slate-400' }
     }
     const sorted = [...validData].sort((a, b) => {
       const yA = String(a.year || '')
@@ -533,10 +592,10 @@ function Dashboard({ isPublic = false }) {
     const latest = sorted[sorted.length - 1].count
     const prev = sorted[sorted.length - 2].count
     if (prev <= 0) {
-      return { trend: '─ 0% vs last year', trendColor: 'text-slate-400' }
+      return { trend: `─ 0% ${label}`, trendColor: 'text-slate-400' }
     }
     const pct = Math.round(((latest - prev) / prev) * 100)
-    const trendText = pct > 0 ? `↑ ${pct}% vs last year` : pct < 0 ? `↓ ${Math.abs(pct)}% vs last year` : `─ 0% vs last year`
+    const trendText = pct > 0 ? `↑ ${pct}% ${label}` : pct < 0 ? `↓ ${Math.abs(pct)}% ${label}` : `─ 0% ${label}`
     const trendColor = pct > 0 ? 'text-emerald-500' : pct < 0 ? 'text-rose-500' : 'text-slate-400'
     return { trend: trendText, trendColor }
   }
@@ -544,15 +603,15 @@ function Dashboard({ isPublic = false }) {
   const getTrendData = (statKey) => {
     switch (statKey) {
       case 'total_publications':
-        return calculateTrend(data.byYear)
+        return calculateTrend(data.byYear, false)
       case 'total_students':
-        return calculateTrend(data.studentsByYear)
+        return calculateTrend(data.studentsByYear, false)
       case 'total_conference_papers':
-        return calculateTrend(data.confByYear)
+        return calculateTrend(data.confByYear, false)
       case 'total_journal_papers':
-        return calculateTrend(data.journalByYear)
+        return calculateTrend(data.journalByYear, false)
       case 'total_events':
-        return calculateTrend(data?.eventAnalytics?.eventsByYear)
+        return calculateTrend(data?.eventAnalytics?.eventsByYear, true)
       default:
         return { trend: '─ 0% vs last year', trendColor: 'text-slate-400' }
     }

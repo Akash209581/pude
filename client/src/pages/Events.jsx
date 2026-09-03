@@ -72,7 +72,11 @@ function Events() {
         setTypes(Array.from(new Set([...defaultEventTypes, ...existingTypes])))
 
         const existingYears = data.map(e => e.academic_year).filter(Boolean)
-        setYears(Array.from(new Set([...defaultAcademicYears, ...existingYears])).sort((a, b) => b.localeCompare(a)))
+        const sortedYears = Array.from(new Set([...defaultAcademicYears, ...existingYears])).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
+        setYears(sortedYears)
+        if (sortedYears.length > 0) {
+          setSelectedYear(sortedYears[0])
+        }
       } catch (error) {
         console.error('Failed to initialize type/year lists:', error)
       }
@@ -331,13 +335,15 @@ function Events() {
             ))}
           </div>
           <select
-            className="input py-1.5 px-3 text-xs w-44 cursor-pointer"
+            className="input py-1.5 px-3 text-xs w-48 cursor-pointer"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
           >
             <option value="">All Academic Years</option>
             {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
+              <option key={y} value={y}>
+                {y} {y === years[0] ? '(Latest)' : ''}
+              </option>
             ))}
           </select>
         </div>
