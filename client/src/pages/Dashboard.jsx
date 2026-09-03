@@ -1,9 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { BookOpen, CalendarClock, FileText, LibraryBig, Users, Search, X, Moon, Sun, ArrowUpRight, Sparkles, Trophy, Calendar, MapPin, Clock } from 'lucide-react'
+import { BookOpen, CalendarClock, CalendarPlus, FileText, LibraryBig, Users, Search, X, Moon, Sun, ArrowUpRight, Sparkles, Trophy, Calendar, MapPin, Clock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import api from '../services/api.js'
 import Spinner from '../components/Spinner.jsx'
+
+const apiOrigin = import.meta.env.VITE_API_ORIGIN ?? 'http://localhost:5000';
+
+const formatDocPath = (path) => {
+  if (!path) return '';
+  if (path.startsWith('/publications/uploads/')) {
+    return path.replace('/publications/uploads/', '/events/uploads/');
+  }
+  if (path.startsWith('/uploads/') && (import.meta.env.VITE_API_ORIGIN === '' || import.meta.env.VITE_API_ORIGIN === undefined)) {
+    return path.replace('/uploads/', '/events/uploads/');
+  }
+  return path;
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -120,7 +133,10 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
         item.event_name?.toLowerCase().includes(term) ||
         item.coordinator_name?.toLowerCase().includes(term) ||
         item.venue?.toLowerCase().includes(term) ||
-        item.description?.toLowerCase().includes(term)
+        item.description?.toLowerCase().includes(term) ||
+        item.outcome?.toLowerCase().includes(term) ||
+        item.academic_year?.toLowerCase().includes(term) ||
+        item.event_type?.toLowerCase().includes(term)
       )
     } else {
       return (
@@ -166,7 +182,7 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 30, scale: 0.95 }}
         transition={{ type: "spring", damping: 26, stiffness: 320 }}
-        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden"
+        className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full ${statType === 'total_events' ? 'max-w-6xl' : 'max-w-5xl'} max-h-[88vh] flex flex-col overflow-hidden`}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/50">
@@ -195,7 +211,7 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
             />
           </div>
           <div className="text-xs font-semibold text-slate-500">
-            {filteredData.length} records found
+            {filteredData.length} {filteredData.length === 1 ? 'record' : 'records'} found
           </div>
         </div>
 
@@ -205,6 +221,131 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
             <div className="py-12 flex justify-center"><Spinner /></div>
           ) : filteredData.length === 0 ? (
             <div className="py-12 text-center text-slate-500">No matching records found.</div>
+          ) : statType === 'total_events' ? (
+            /* Cards View for Events */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredData.map((event) => {
+                const formattedPoster = formatDocPath(event.poster)
+                const posterExt = formattedPoster.toLowerCase()
+                const isImagePoster = formattedPoster && (
+                  posterExt.endsWith('.jpg') ||
+                  posterExt.endsWith('.jpeg') ||
+                  posterExt.endsWith('.png') ||
+                  posterExt.endsWith('.gif') ||
+                  posterExt.endsWith('.webp') ||
+                  posterExt.endsWith('.bmp') ||
+                  posterExt.endsWith('.svg')
+                )
+                const supportingDocs = [
+                  { label: 'Poster', path: formattedPoster },
+                  { label: 'One Page Report', path: formatDocPath(event.one_page_report) },
+                  { label: 'Winners List', path: formatDocPath(event.winners_list) },
+                  { label: 'Sample Certificate', path: formatDocPath(event.sample_certificate) },
+                  { label: 'Budget Report', path: formatDocPath(event.budget_report) },
+                ].filter(doc => doc.path)
+
+                const isUpcoming = new Date(event.from_date) >= new Date(new Date().toDateString())
+
+                return (
+                  <article className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col overflow-hidden shadow-sm hover:shadow-md transition hover:-translate-y-1" key={event.id}>
+                    {/* Poster Display */}
+                    <div className="aspect-[16/9] w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-850 dark:to-slate-900 flex items-center justify-center relative overflow-hidden">
+                      {formattedPoster ? (
+                        isImagePoster ? (
+                          <img src={`${apiOrigin}${formattedPoster}`} alt={event.event_name} className="h-full w-full object-cover" />
+                        ) : (
+                          <a href={`${apiOrigin}${formattedPoster}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center text-slate-500 hover:text-blue-600 transition p-4">
+                            <FileText size={42} className="text-red-500" />
+                            <span className="text-xs mt-1 font-semibold">View Poster File</span>
+                          </a>
+                        )
+                      ) : (
+                        <div className="flex flex-col items-center text-slate-400 p-4">
+                          <CalendarPlus size={36} />
+                          <span className="text-xs mt-1 font-medium">No Image Poster</span>
+                        </div>
+                      )}
+                      {/* Badges */}
+                      <div className="absolute top-3 left-3 flex flex-wrap gap-1 max-w-[70%]">
+                        {event.academic_year && (
+                          <span className="bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-xs shadow-sm">
+                            {event.academic_year}
+                          </span>
+                        )}
+                        {event.event_type && (
+                          <span className="bg-blue-600/90 text-white text-[10px] px-2 py-0.5 rounded font-bold backdrop-blur-xs shadow-sm">
+                            {event.event_type}
+                          </span>
+                        )}
+                      </div>
+                      {/* Date Status Badge */}
+                      <div className="absolute top-3 right-3">
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${isUpcoming ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25' : 'bg-slate-600 text-white shadow-md shadow-slate-600/20'}`}>
+                          {isUpcoming ? 'Upcoming' : 'Past'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Event Contents */}
+                    <div className="p-5 flex-1 flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100 line-clamp-1" title={event.event_name}>{event.event_name}</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center flex-wrap gap-1">
+                            <span>📅 {new Date(event.from_date).toLocaleDateString()}</span>
+                            {event.to_date && event.to_date !== event.from_date && <span>- {new Date(event.to_date).toLocaleDateString()}</span>}
+                            {event.venue && <span>· 📍 {event.venue}</span>}
+                          </p>
+                        </div>
+
+                        {event.description && (
+                          <p className="line-clamp-3 text-xs sm:text-sm text-slate-600 dark:text-slate-350">{event.description}</p>
+                        )}
+
+                        {event.outcome && (
+                          <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Outcome / Impact</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-350 line-clamp-2 mt-0.5">{event.outcome}</p>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400 pt-1">
+                          <div>
+                            <p className="font-bold text-slate-400 uppercase text-[9px]">Coordinator</p>
+                            <p className="font-medium text-slate-700 dark:text-slate-300 truncate">{event.coordinator_name || '-'}</p>
+                            {event.employee_id && <p className="text-[10px] text-slate-400">{event.employee_id}</p>}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-400 uppercase text-[9px]">Budget</p>
+                            <p className="font-semibold text-slate-700 dark:text-slate-300">{event.budget ? `₹${Number(event.budget).toLocaleString()}` : '-'}</p>
+                          </div>
+                        </div>
+
+                        {/* Supporting Documents Badges */}
+                        {supportingDocs.length > 0 && (
+                          <div className="border-t border-slate-100 dark:border-slate-800 pt-2.5">
+                            <p className="font-bold text-slate-400 uppercase text-[9px] mb-1.5">Supporting Documents</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {supportingDocs.map((doc) => (
+                                <a
+                                  key={doc.label}
+                                  href={`${apiOrigin}${doc.path}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-md bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-750 px-2 py-1 text-xs font-semibold transition"
+                                >
+                                  <FileText size={11} /> {doc.label}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               {statType === 'total_students' && (
@@ -377,13 +518,17 @@ function Dashboard({ isPublic = false }) {
   }
 
   const calculateTrend = (yearlyData) => {
-    if (!yearlyData || yearlyData.length < 2) {
+    if (!yearlyData || !Array.isArray(yearlyData)) {
       return { trend: '─ 0% vs last year', trendColor: 'text-slate-400' }
     }
-    const sorted = [...yearlyData].sort((a, b) => {
+    const validData = yearlyData.filter(d => d && d.year !== null && d.year !== undefined && d.year !== '')
+    if (validData.length < 2) {
+      return { trend: '─ 0% vs last year', trendColor: 'text-slate-400' }
+    }
+    const sorted = [...validData].sort((a, b) => {
       const yA = String(a.year || '')
       const yB = String(b.year || '')
-      return yA.localeCompare(yB)
+      return yA.localeCompare(yB, undefined, { numeric: true })
     })
     const latest = sorted[sorted.length - 1].count
     const prev = sorted[sorted.length - 2].count
