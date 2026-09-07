@@ -10,7 +10,7 @@ function getFilePath(files, fieldName) {
 
 async function list(req, res, next) {
   try {
-    const rows = await events.list(req.query.type, req.query.academic_year);
+    const rows = await events.list(req.query.type, req.query.academic_year, req.query.event_type);
     return res.json(rows);
   } catch (error) {
     return next(error);

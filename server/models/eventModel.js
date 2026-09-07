@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-async function list(type, academicYear) {
+async function list(type, academicYear, eventType) {
   const conditions = [];
   const values = [];
   
@@ -13,6 +13,11 @@ async function list(type, academicYear) {
   if (academicYear) {
     values.push(academicYear);
     conditions.push(`academic_year = $${values.length}`);
+  }
+
+  if (eventType) {
+    values.push(eventType);
+    conditions.push(`event_type = $${values.length}`);
   }
   
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';

@@ -62,6 +62,7 @@ function Events() {
   const [types, setTypes] = useState(defaultEventTypes)
   const [years, setYears] = useState(defaultAcademicYears)
   const [selectedYear, setSelectedYear] = useState('')
+  const [selectedType, setSelectedType] = useState('')
   const [selectedEvents, setSelectedEvents] = useState([])
 
   useEffect(() => {
@@ -177,22 +178,6 @@ function Events() {
     }
   }
 
-  useEffect(() => {
-    const initOptions = async () => {
-      try {
-        const { data } = await api.get('/events')
-        const existingTypes = data.map(e => e.event_type).filter(Boolean)
-        setTypes(Array.from(new Set([...defaultEventTypes, ...existingTypes])))
-
-        const existingYears = data.map(e => e.academic_year).filter(Boolean)
-        setYears(Array.from(new Set([...defaultAcademicYears, ...existingYears])).sort((a, b) => b.localeCompare(a)))
-      } catch (error) {
-        console.error('Failed to initialize type/year lists:', error)
-      }
-    }
-    initOptions()
-  }, [])
-
   const handleTypeChange = (e) => {
     const value = e.target.value
     if (value === 'Other') {
@@ -234,10 +219,11 @@ function Events() {
     const params = {}
     if (filter) params.type = filter
     if (selectedYear) params.academic_year = selectedYear
+    if (selectedType) params.event_type = selectedType
     const { data } = await api.get('/events', { params })
     setEvents(data)
     setLoading(false)
-  }, [filter, selectedYear])
+  }, [filter, selectedYear, selectedType])
 
   useEffect(() => {
     loadEvents().catch(() => {
@@ -343,6 +329,18 @@ function Events() {
             {years.map((y) => (
               <option key={y} value={y}>
                 {y} {y === years[0] ? '(Latest)' : ''}
+              </option>
+            ))}
+          </select>
+          <select
+            className="input py-1.5 px-3 text-xs w-44 cursor-pointer"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="">All Event Types</option>
+            {types.map((type) => (
+              <option key={type} value={type}>
+                {type}
               </option>
             ))}
           </select>
