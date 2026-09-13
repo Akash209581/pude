@@ -66,6 +66,8 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedYear, setSelectedYear] = useState('')
   const [availableYears, setAvailableYears] = useState([])
+  const [selectedType, setSelectedType] = useState('all')
+  const [availableTypes, setAvailableTypes] = useState([])
 
   useEffect(() => {
     if (!isOpen) return
@@ -112,6 +114,10 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
           years.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
           setAvailableYears(years)
 
+          const types = Array.from(new Set(rows.map(item => item.event_type).filter(Boolean)))
+          types.sort((a, b) => a.localeCompare(b))
+          setAvailableTypes(types)
+
           if (subFilter && subFilter.type === 'academic_year') {
             setSelectedYear(subFilter.value)
           } else if (years.length > 0) {
@@ -119,14 +125,24 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
           } else {
             setSelectedYear('')
           }
+
+          if (subFilter && subFilter.type === 'event_type') {
+            setSelectedType(subFilter.value)
+          } else {
+            setSelectedType('all')
+          }
         } else if (['total_publications', 'total_conference_papers', 'total_journal_papers'].includes(statType)) {
           const years = Array.from(new Set(rows.map(item => item.year).filter(Boolean)))
           years.sort((a, b) => Number(b) - Number(a))
           setAvailableYears(years)
           setSelectedYear('')
+          setAvailableTypes([])
+          setSelectedType('all')
         } else {
           setAvailableYears([])
           setSelectedYear('')
+          setAvailableTypes([])
+          setSelectedType('all')
         }
       })
       .catch(err => console.error(err))
@@ -136,16 +152,6 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
   if (!isOpen) return null
 
   const filteredData = data.filter(item => {
-    // Apply subFilter for event stats if present
-    if (subFilter && statType === 'total_events') {
-      if (subFilter.type === 'event_type' && item.event_type !== subFilter.value) {
-        return false
-      }
-      if (subFilter.type === 'academic_year' && item.academic_year !== subFilter.value) {
-        return false
-      }
-    }
-
     // Apply Academic Year dropdown filter
     if (selectedYear && selectedYear !== 'all') {
       if (statType === 'total_events') {
@@ -153,6 +159,11 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
       } else if (['total_publications', 'total_conference_papers', 'total_journal_papers'].includes(statType)) {
         if (String(item.year) !== String(selectedYear)) return false
       }
+    }
+
+    // Apply Event Type dropdown filter
+    if (statType === 'total_events' && selectedType && selectedType !== 'all') {
+      if (item.event_type !== selectedType) return false
     }
 
     const term = searchTerm.toLowerCase().trim()
@@ -194,6 +205,9 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
       case 'total_journal_papers': return 'Journal Papers'
       case 'total_faculty_publications': return 'Faculty Members & Publications Count'
       case 'total_events':
+        if (selectedType && selectedType !== 'all') {
+          return `Events - ${selectedType}`
+        }
         if (subFilter) {
           if (subFilter.type === 'event_type') {
             return `Events - ${subFilter.value}`
@@ -235,7 +249,7 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
           </button>
         </div>
 
-        {/* Search and Academic Year Filter Bar */}
+        {/* Search, Event Type and Academic Year Filter Bar */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-850 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -247,6 +261,26 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
               className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
             />
           </div>
+
+          {statType === 'total_events' && availableTypes.length > 0 && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                Event Type:
+              </span>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition cursor-pointer"
+              >
+                <option value="all">All Event Types</option>
+                {availableTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {availableYears.length > 0 && (
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -296,7 +330,6 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
                 )
                 const supportingDocs = [
                   { label: 'Poster', path: formattedPoster },
-                  { label: 'One Page Report', path: formatDocPath(event.one_page_report) },
                   { label: 'Winners List', path: formatDocPath(event.winners_list) },
                   { label: 'Sample Certificate', path: formatDocPath(event.sample_certificate) },
                   { label: 'Budget Report', path: formatDocPath(event.budget_report) },
