@@ -1,20 +1,21 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { BarChart3, CalendarDays, FileSpreadsheet, LibraryBig, LogOut, Menu, Moon, Sun, X } from 'lucide-react'
+import { BarChart3, CalendarDays, FileSpreadsheet, LibraryBig, LogOut, Menu, Moon, Sun, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/useAuth.js'
-
-const links = [
-  { to: '/', label: 'Dashboard', icon: BarChart3 },
-  { to: '/publications', label: 'Publications', icon: LibraryBig },
-  { to: '/events', label: 'Events', icon: CalendarDays },
-  { to: '/upload-publications', label: 'Upload Publications', icon: FileSpreadsheet },
-]
 
 function Layout() {
   const { logout, user } = useAuth()
   const [open, setOpen] = useState(false)
   const [dark, setDark] = useState(() => localStorage.getItem('cse_theme') === 'dark')
   const location = useLocation()
+
+  const links = [
+    { to: '/', label: 'Dashboard', icon: BarChart3 },
+    { to: '/publications', label: 'Publications', icon: LibraryBig },
+    { to: '/events', label: 'Events', icon: CalendarDays },
+    { to: '/upload-publications', label: 'Upload Publications', icon: FileSpreadsheet },
+    ...(user?.role === 'admin' ? [{ to: '/users', label: 'User Management', icon: Users }] : []),
+  ]
 
   useEffect(() => setOpen(false), [location.pathname])
   useEffect(() => {
@@ -29,7 +30,7 @@ function Layout() {
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-white/50 bg-white/80 p-5 shadow-xl shadow-slate-200/60 backdrop-blur-xl transition-transform dark:border-slate-800 dark:bg-slate-900/90 dark:shadow-none md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">Admin</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">Department</p>
             <h1 className="text-xl font-bold">CSE Portal</h1>
           </div>
           <button className="icon-button md:!hidden" onClick={() => setOpen(false)} aria-label="Close menu">
@@ -46,7 +47,9 @@ function Layout() {
         <div className="absolute bottom-5 left-5 right-5 space-y-3">
           <div className="rounded-lg border border-slate-200 bg-white/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-950/50">
             <p className="font-semibold">{user?.username}</p>
-            <p className="text-slate-500">Administrator</p>
+            <p className="text-slate-500 font-medium text-xs">
+              {user?.role === 'admin' ? 'Administrator' : 'Teaching Assistant (TA)'}
+            </p>
           </div>
           <button className="btn-secondary w-full justify-center" onClick={logout}><LogOut size={16} /> Logout</button>
         </div>

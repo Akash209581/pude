@@ -6,7 +6,7 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 require('dotenv').config();
 
-const { authenticate, requireAdmin } = require('../middleware/auth');
+const { authenticate, requireAdmin, requireTaOrAdmin } = require('../middleware/auth');
 const { notFound, errorHandler } = require('../middleware/errorHandler');
 const authRoutes = require('../routes/authRoutes');
 const dashboardRoutes = require('../routes/dashboardRoutes');
@@ -41,9 +41,9 @@ apiRouter.get('/api/public/publications', publicationController.list);
 apiRouter.get('/api/public/events', eventController.list);
 apiRouter.get('/api/public/students', publicationController.listStudents);
 
-apiRouter.use('/api', authenticate, requireAdmin, dashboardRoutes);
-apiRouter.use('/api', authenticate, requireAdmin, publicationRoutes);
-apiRouter.use('/api', authenticate, requireAdmin, eventRoutes);
+apiRouter.use('/api', authenticate, requireTaOrAdmin, dashboardRoutes);
+apiRouter.use('/api', authenticate, requireTaOrAdmin, publicationRoutes);
+apiRouter.use('/api', authenticate, requireTaOrAdmin, eventRoutes);
 
 app.use(prefix, apiRouter);
 app.use(notFound);

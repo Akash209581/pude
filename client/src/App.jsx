@@ -7,10 +7,16 @@ import Events from './pages/Events.jsx'
 import Login from './pages/Login.jsx'
 import Publications from './pages/Publications.jsx'
 import UploadPublications from './pages/UploadPublications.jsx'
+import UserManagement from './pages/UserManagement.jsx'
 
 function ProtectedRoute({ children }) {
   const { token } = useAuth()
   return token ? children : <Navigate to="/login" replace />
+}
+
+function AdminRoute({ children }) {
+  const { user } = useAuth()
+  return user?.role === 'admin' ? children : <Navigate to="/" replace />
 }
 
 function App() {
@@ -32,6 +38,7 @@ function App() {
           <Route path="publications" element={<Publications />} />
           <Route path="events" element={<Events />} />
           <Route path="upload-publications" element={<UploadPublications />} />
+          <Route path="users" element={<AdminRoute><UserManagement /></AdminRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

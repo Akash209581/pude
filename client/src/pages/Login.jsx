@@ -40,8 +40,8 @@ function Login() {
           <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
             <LockKeyhole />
           </div>
-          <h2 className="text-3xl font-bold text-slate-950 dark:text-white">Admin Login</h2>
-          <p className="mt-2 text-sm text-slate-500">Use the seeded administrator account to continue.</p>
+          <h2 className="text-3xl font-bold text-slate-950 dark:text-white">Portal Login</h2>
+          <p className="mt-2 text-sm text-slate-500">Sign in with your Admin or TA account to continue.</p>
           <div className="mt-8 space-y-4">
             <div>
               <label className="label" htmlFor="username">Username</label>

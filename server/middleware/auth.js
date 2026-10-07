@@ -24,4 +24,11 @@ function requireAdmin(req, res, next) {
   return next();
 }
 
-module.exports = { authenticate, requireAdmin };
+function requireTaOrAdmin(req, res, next) {
+  if (!['admin', 'ta'].includes(req.user?.role)) {
+    return res.status(403).json({ message: 'Access denied.' });
+  }
+  return next();
+}
+
+module.exports = { authenticate, requireAdmin, requireTaOrAdmin };

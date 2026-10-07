@@ -3,6 +3,7 @@ import { CalendarPlus, Edit3, FileText, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../services/api.js'
 import Spinner from '../components/Spinner.jsx'
+import { useAuth } from '../contexts/useAuth.js'
 
 const emptyForm = {
   employee_id: '',
@@ -53,6 +54,7 @@ const formatDocPath = (path) => {
 };
 
 function Events() {
+  const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [filter, setFilter] = useState('')
   const [loading, setLoading] = useState(true)
@@ -681,9 +683,11 @@ function Events() {
                     <button className="btn-secondary flex-1 justify-center py-1.5 text-xs cursor-pointer" onClick={() => startEdit(event)}>
                       <Edit3 size={14} /> Edit
                     </button>
-                    <button className="btn-danger py-1.5 px-3 text-xs cursor-pointer" onClick={() => deleteEvent(event.id)}>
-                      <Trash2 size={14} />
-                    </button>
+                    {user?.role === 'admin' && (
+                      <button className="btn-danger py-1.5 px-3 text-xs cursor-pointer" onClick={() => deleteEvent(event.id)} title="Delete Event">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>

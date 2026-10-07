@@ -3,6 +3,7 @@ import { Download, Edit3, Plus, Search, Trash2, UserPlus, X } from 'lucide-react
 import toast from 'react-hot-toast'
 import api from '../services/api.js'
 import Spinner from '../components/Spinner.jsx'
+import { useAuth } from '../contexts/useAuth.js'
 
 const emptyForm = {
   serial_no: '',
@@ -16,6 +17,7 @@ const emptyForm = {
 }
 
 function Publications() {
+  const { user } = useAuth()
   const [rows, setRows] = useState([])
   const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10 })
   const [loading, setLoading] = useState(true)
@@ -322,7 +324,9 @@ function Publications() {
                     <div className="flex gap-2">
                       <button className="icon-button cursor-pointer" onClick={() => exportSingle(row)} title="Download CSV" aria-label="Download CSV"><Download size={14} /></button>
                       <button className="icon-button cursor-pointer" onClick={() => startEdit(row)} aria-label="Edit"><Edit3 size={16} /></button>
-                      <button className="btn-danger cursor-pointer" onClick={() => deletePublication(row.id)}><Trash2 size={16} /></button>
+                      {user?.role === 'admin' && (
+                        <button className="btn-danger cursor-pointer" onClick={() => deletePublication(row.id)} title="Delete"><Trash2 size={16} /></button>
+                      )}
                     </div>
                   </td>
                 </tr>
