@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { BookOpen, CalendarClock, CalendarPlus, FileText, LibraryBig, Users, Search, X, Moon, Sun, ArrowUpRight, Sparkles, Trophy, Calendar, MapPin, Clock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -221,19 +222,19 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
     }
   }
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
     >
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 30, scale: 0.95 }}
         transition={{ type: "spring", damping: 26, stiffness: 320 }}
-        className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full ${statType === 'total_events' ? 'max-w-6xl' : 'max-w-5xl'} max-h-[88vh] flex flex-col overflow-hidden`}
+        className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full ${statType === 'total_events' ? 'max-w-6xl' : 'max-w-5xl'} max-h-[88vh] flex flex-col overflow-hidden relative z-[101]`}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-850 bg-slate-50 dark:bg-slate-900/50">
@@ -543,7 +544,8 @@ function DetailModal({ isOpen, onClose, statType, isPublic, subFilter }) {
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   )
 }
 
@@ -1232,7 +1234,7 @@ function Dashboard({ isPublic = false }) {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto p-4 sm:p-8 relative z-10">
+        <main className="max-w-7xl mx-auto p-4 sm:p-8 relative">
           {dashboardContent}
         </main>
       </div>

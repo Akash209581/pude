@@ -10,9 +10,12 @@ async function main() {
   const schema = fs.readFileSync(path.join(__dirname, '..', 'config', 'schema.sql'), 'utf8');
   await db.query(schema);
 
-  const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD || 'Admin@12345';
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
   const hash = await bcrypt.hash(password, 12);
+
+  // Remove existing admin users to ensure old credentials are completely replaced
+  await db.query("DELETE FROM users WHERE role = 'admin'");
   const user = await users.createAdmin(username, hash);
 
   console.log(`Admin ready: ${user.username}`);
