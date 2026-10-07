@@ -20,6 +20,9 @@ node_modules/
 uploads/*
 !uploads/.gitkeep
 
+# Backups directory
+backups/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

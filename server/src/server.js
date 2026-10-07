@@ -15,6 +15,7 @@ const eventRoutes = require('../routes/eventRoutes');
 const pendingEditRoutes = require('../routes/pendingEditRoutes');
 const publicationController = require('../controllers/publicationController');
 const eventController = require('../controllers/eventController');
+const { startBackupScheduler } = require('../utils/backupScheduler');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -63,4 +64,5 @@ app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`CSE Department Portal API running on port ${port}`);
+  startBackupScheduler();
 });

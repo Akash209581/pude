@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "seed:admin": "node utils/seedAdmin.js"
+    "seed:admin": "node utils/seedAdmin.js",
+    "backup": "node utils/backup.js"
   },
   "keywords": [],
   "author": "",
