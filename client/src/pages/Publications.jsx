@@ -119,8 +119,12 @@ function Publications() {
     event.preventDefault()
     try {
       if (editingId) {
-        await api.put(`/publications/${editingId}`, form)
-        toast.success('Publication updated')
+        const { data } = await api.put(`/publications/${editingId}`, form)
+        if (data?.requiresApproval) {
+          toast.success('Edit submitted for Admin verification.')
+        } else {
+          toast.success('Publication updated')
+        }
       } else {
         await api.post('/publications', form)
         toast.success('Publication added')

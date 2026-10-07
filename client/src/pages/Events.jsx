@@ -277,8 +277,12 @@ function Events() {
     })
     try {
       if (editingId) {
-        await api.put(`/events/${editingId}`, data)
-        toast.success('Event updated')
+        const { data: resData } = await api.put(`/events/${editingId}`, data)
+        if (resData?.requiresApproval) {
+          toast.success('Edit submitted for Admin verification.')
+        } else {
+          toast.success('Event updated')
+        }
       } else {
         await api.post('/events', data)
         toast.success('Event added')

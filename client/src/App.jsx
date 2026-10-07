@@ -8,6 +8,7 @@ import Login from './pages/Login.jsx'
 import Publications from './pages/Publications.jsx'
 import UploadPublications from './pages/UploadPublications.jsx'
 import UserManagement from './pages/UserManagement.jsx'
+import Approvals from './pages/Approvals.jsx'
 
 function ProtectedRoute({ children }) {
   const { token } = useAuth()
@@ -39,6 +40,7 @@ function App() {
           <Route path="events" element={<Events />} />
           <Route path="upload-publications" element={<UploadPublications />} />
           <Route path="users" element={<AdminRoute><UserManagement /></AdminRoute>} />
+          <Route path="approvals" element={<AdminRoute><Approvals /></AdminRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

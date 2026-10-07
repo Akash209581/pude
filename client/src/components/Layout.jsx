@@ -1,20 +1,35 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { BarChart3, CalendarDays, FileSpreadsheet, LibraryBig, LogOut, Menu, Moon, Sun, Users, X } from 'lucide-react'
+import { BarChart3, CalendarDays, CheckSquare, FileSpreadsheet, LibraryBig, LogOut, Menu, Moon, Sun, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/useAuth.js'
+import api from '../services/api.js'
 
 function Layout() {
   const { logout, user } = useAuth()
   const [open, setOpen] = useState(false)
   const [dark, setDark] = useState(() => localStorage.getItem('cse_theme') === 'dark')
+  const [pendingCount, setPendingCount] = useState(0)
   const location = useLocation()
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      api.get('/pending-edits')
+        .then(({ data }) => setPendingCount(data.length))
+        .catch(() => {})
+    }
+  }, [user, location.pathname])
 
   const links = [
     { to: '/', label: 'Dashboard', icon: BarChart3 },
     { to: '/publications', label: 'Publications', icon: LibraryBig },
     { to: '/events', label: 'Events', icon: CalendarDays },
     { to: '/upload-publications', label: 'Upload Publications', icon: FileSpreadsheet },
-    ...(user?.role === 'admin' ? [{ to: '/users', label: 'User Management', icon: Users }] : []),
+    ...(user?.role === 'admin'
+      ? [
+          { to: '/approvals', label: 'Edit Approvals', icon: CheckSquare, badge: pendingCount },
+          { to: '/users', label: 'User Management', icon: Users },
+        ]
+      : []),
   ]
 
   useEffect(() => setOpen(false), [location.pathname])
@@ -38,9 +53,16 @@ function Layout() {
           </button>
         </div>
         <nav className="space-y-2">
-          {links.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
-              <Icon size={18} /> {label}
+          {links.map(({ to, label, icon: Icon, badge }) => (
+            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
+              <span className="flex items-center gap-3">
+                <Icon size={18} /> {label}
+              </span>
+              {Boolean(badge) && badge > 0 && (
+                <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                  {badge}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

@@ -1,4 +1,5 @@
 const publications = require('../models/publicationModel');
+const pendingEdits = require('../models/pendingEditModel');
 
 async function list(req, res, next) {
   try {
@@ -23,11 +24,31 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const publication = await publications.update(req.params.id, req.body);
-    if (!publication) {
+    const pubId = parseInt(req.params.id, 10);
+    const existing = await publications.findById(pubId);
+    if (!existing) {
       return res.status(404).json({ message: 'Publication not found.' });
     }
-    return res.json(publication);
+
+    if (req.user?.role === 'admin') {
+      const publication = await publications.update(pubId, req.body);
+      return res.json(publication);
+    }
+
+    // TA user edit -> send to Admin verification
+    const pending = await pendingEdits.createPendingEdit(
+      'publication',
+      pubId,
+      req.user?.id,
+      req.user?.username,
+      req.body,
+    );
+
+    return res.json({
+      message: 'Publication edit submitted for Admin verification.',
+      requiresApproval: true,
+      pending,
+    });
   } catch (error) {
     if (error.code === '23505') {
       return res.status(409).json({ message: 'A publication with the same title, venue, category, and year already exists.' });

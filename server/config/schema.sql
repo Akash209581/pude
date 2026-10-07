@@ -131,3 +131,14 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS pending_edits (
+  id SERIAL PRIMARY KEY,
+  target_type VARCHAR(30) NOT NULL,
+  target_id INTEGER NOT NULL,
+  requested_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  requested_by_username VARCHAR(120),
+  changes_data JSONB NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+

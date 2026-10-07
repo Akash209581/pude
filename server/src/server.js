@@ -12,6 +12,7 @@ const authRoutes = require('../routes/authRoutes');
 const dashboardRoutes = require('../routes/dashboardRoutes');
 const publicationRoutes = require('../routes/publicationRoutes');
 const eventRoutes = require('../routes/eventRoutes');
+const pendingEditRoutes = require('../routes/pendingEditRoutes');
 const publicationController = require('../controllers/publicationController');
 const eventController = require('../controllers/eventController');
 
@@ -24,9 +25,19 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 250 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-app.use('/publications/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-app.use('/events/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+const staticOptions = {
+  setHeaders: (res, filePath) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    const ext = path.extname(filePath).toLowerCase();
+    if (ext === '.pdf' || ext === '.docx') {
+      res.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
+    }
+  },
+};
+
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads'), staticOptions));
+app.use('/publications/uploads', express.static(path.join(__dirname, '..', 'uploads'), staticOptions));
+app.use('/events/uploads', express.static(path.join(__dirname, '..', 'uploads'), staticOptions));
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
@@ -34,6 +45,7 @@ const prefix = process.env.PATH_PREFIX || '';
 const apiRouter = express.Router();
 
 apiRouter.use('/api', authRoutes);
+apiRouter.use('/api', pendingEditRoutes);
 
 // Public dashboard and analytics endpoints
 apiRouter.use('/api/public', dashboardRoutes);
