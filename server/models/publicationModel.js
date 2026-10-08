@@ -494,4 +494,4 @@ async function listStudents() {
   return rows;
 }
 
-module.exports = { list, create, update, remove, analytics, insertMany, listStudents };
+module.exports = { list, create, update, remove, analytics, insertMany, listStudents, findById };
